@@ -34,7 +34,7 @@ MOD_NAME = "agent-resume"
 PACKAGE = "herdr-agent-resume"
 VERSION = "0.4.1+windows.1"
 MARKER = ".agent-resume-install.json"
-FILES = ("main.js", "summary.js", "mod.json", "agent_resume.py") + (("winproc.py",) if IS_WIN else ())
+FILES = ("main.js", "summary.js", "mod.json", "agent_resume.py", "winproc.py")
 GENERATED = {"gpui-kit.d.ts", "jsconfig.json", "__pycache__"}
 HOOK_RE = re.compile(r"agent_resume\.py[\"']? hook ")
 BEGIN, END = "# >>> agent-resume >>>", "# <<< agent-resume <<<"
@@ -86,7 +86,8 @@ def digest(path):
 
 
 def read_text(path):
-    return path.read_bytes().decode("utf-8")
+    # UTF-8 (never the console code page), with universal newlines like text mode.
+    return path.read_bytes().decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def read_json(path):

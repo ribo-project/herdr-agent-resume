@@ -392,7 +392,8 @@ def split_flags(agent, args):
     """(kept groups, dropped dangerous groups) of the launch flags in `args`."""
     kept, dropped = [], []
     for group in _flag_groups(agent, args):
-        (dropped if dangerous(group) else kept).append(group)
+        # The Windows port never inherits permission-bypass flags; Linux/macOS keep upstream's behavior.
+        (dropped if IS_WIN and dangerous(group) else kept).append(group)
     return kept, dropped
 
 
@@ -1101,8 +1102,9 @@ def plan(terminals, boot, folder_ok=os.path.isdir, file_ok=os.path.isfile, veto=
             continue
         key = (label["agent"], label["session"])
         item = {"terminal": terminal["address"], "where": (terminal.get("labels") or {}).get("where"),
-                "agent": label["agent"], "session": label["session"], "cwd": label.get("cwd"),
-                "label_at": label.get("at")}
+                "agent": label["agent"], "session": label["session"], "cwd": label.get("cwd")}
+        if IS_WIN:
+            item["label_at"] = label.get("at")  # lets the automatic pass try each noted session once
         kind = shell_kind(terminal)
         typed = command(label, kind) if kind else None
         omitted = flag_report(label, kind)[1] if IS_WIN else []
